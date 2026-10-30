@@ -43,12 +43,17 @@ class AppointmentController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date|after:now',
             'notes' => 'nullable|string',
-        ]);
+        ];
+
+        if (auth()->user()->isAdmin()) {
+            $rules['doctor_id'] = 'required|exists:users,id';
+        }
+
+        $validated = $request->validate($rules);
 
         // If user is doctor, assign to themselves
         if (auth()->user()->isDoctor()) {
@@ -97,13 +102,22 @@ class AppointmentController extends Controller
     {
         $this->authorizeAppointmentAccess($appointment);
 
-        $validated = $request->validate([
+        $rules = [
             'patient_id' => 'required|exists:patients,id',
-            'doctor_id' => 'required|exists:users,id',
             'appointment_date' => 'required|date',
             'status' => 'required|in:scheduled,completed,cancelled',
             'notes' => 'nullable|string',
-        ]);
+        ];
+
+        if (auth()->user()->isAdmin()) {
+            $rules['doctor_id'] = 'required|exists:users,id';
+        }
+
+        $validated = $request->validate($rules);
+
+        if (auth()->user()->isDoctor()) {
+            $validated['doctor_id'] = $appointment->doctor_id;
+        }
 
         $appointment->update($validated);
 
