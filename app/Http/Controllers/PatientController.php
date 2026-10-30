@@ -28,7 +28,7 @@ class PatientController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:patients',
             'phone' => 'required|string|max:20',
@@ -36,8 +36,13 @@ class PatientController extends Controller
             'gender' => 'required|in:male,female,other',
             'address' => 'required|string',
             'medical_history' => 'nullable|string',
-            'doctor_id' => 'required|exists:users,id',
-        ]);
+        ];
+
+        if (auth()->user()->isAdmin()) {
+            $rules['doctor_id'] = 'required|exists:users,id';
+        }
+
+        $validated = $request->validate($rules);
 
         // If user is doctor, assign to themselves
         if (auth()->user()->isDoctor()) {
@@ -74,7 +79,7 @@ class PatientController extends Controller
     {
         $this->authorizePatientAccess($patient);
 
-        $validated = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:patients,email,' . $patient->id,
             'phone' => 'required|string|max:20',
@@ -82,8 +87,17 @@ class PatientController extends Controller
             'gender' => 'required|in:male,female,other',
             'address' => 'required|string',
             'medical_history' => 'nullable|string',
-            'doctor_id' => 'required|exists:users,id',
-        ]);
+        ];
+
+        if (auth()->user()->isAdmin()) {
+            $rules['doctor_id'] = 'required|exists:users,id';
+        }
+
+        $validated = $request->validate($rules);
+
+        if (auth()->user()->isDoctor()) {
+            $validated['doctor_id'] = $patient->doctor_id;
+        }
 
         $patient->update($validated);
 
