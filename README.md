@@ -1,6 +1,5 @@
 # 🏥 Hospital Management System (Laravel)
 
-A Laravel-based Hospital Management System developed as part of a technical evaluation task.  
 The application demonstrates **Laravel fundamentals**, including authentication, role-based access control, CRUD operations, routing, middleware, and dashboard-based UI.
 
 ---
